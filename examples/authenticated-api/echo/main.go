@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/deepmap/oapi-codegen/examples/authenticated-api/echo/api"
-	"github.com/deepmap/oapi-codegen/examples/authenticated-api/echo/server"
+	"github.com/tamj0rd2/oapi-codegen/examples/authenticated-api/echo/api"
+	"github.com/tamj0rd2/oapi-codegen/examples/authenticated-api/echo/server"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )

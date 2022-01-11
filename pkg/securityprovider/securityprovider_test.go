@@ -3,7 +3,7 @@ package securityprovider
 import (
 	"testing"
 
-	"github.com/deepmap/oapi-codegen/internal/test/client"
+	"github.com/tamj0rd2/oapi-codegen/internal/test/client"
 	"github.com/stretchr/testify/assert"
 )
 

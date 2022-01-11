@@ -19,7 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/deepmap/oapi-codegen/pkg/types"
+	"github.com/tamj0rd2/oapi-codegen/pkg/types"
 )
 
 func TestBindStringToObject(t *testing.T) {
