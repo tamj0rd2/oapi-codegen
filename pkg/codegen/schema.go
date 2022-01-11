@@ -205,6 +205,10 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 
 	schema := sref.Value
 
+	if len(schema.AllOf) == 1 && IsGoTypeReference(schema.AllOf[0].Ref) {
+		sref = schema.AllOf[0]
+	}
+
 	// If Ref is set on the SchemaRef, it means that this type is actually a reference to
 	// another type. We're not de-referencing, so simply use the referenced type.
 	if IsGoTypeReference(sref.Ref) {
@@ -231,6 +235,7 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 	// so that in a RESTful paradigm, the Create operation can return
 	// (object, id), so that other operations can refer to (id)
 	if schema.AllOf != nil {
+
 		mergedSchema, err := MergeSchemas(schema.AllOf, path)
 		if err != nil {
 			return Schema{}, fmt.Errorf("error merging schemas: %w", err)
