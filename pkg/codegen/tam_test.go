@@ -1,8 +1,8 @@
 package codegen
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 	"reflect"
@@ -15,11 +15,6 @@ info:
   title: Sample API
   description: Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.
   version: 0.1.9
-servers:
-  - url: http://api.example.com/v1
-    description: Optional server description, e.g. Main (production) server
-  - url: http://staging-api.example.com
-    description: Optional server description, e.g. Internal staging server for testing
 paths:
   /users:
     get:
@@ -57,77 +52,69 @@ components:
             - Street A
 `
 
-func TestName(t *testing.T) {
-	bytes := []byte("123")
-	var numberInterface interface{}
-	err := json.Unmarshal(bytes, &numberInterface)
-	assert.NoError(t, err)
-
-	result := reflect.ValueOf(numberInterface)
-	fmt.Println(result)
-	fmt.Println(result.Kind())
-}
-
 func TestStuff(t *testing.T) {
 	var yamlFile interface{}
 	err := yaml.Unmarshal([]byte(fixture), &yamlFile)
 	assert.NoError(t, err)
 
-	recurse(reflect.ValueOf(yamlFile))
+	result := recurse(reflect.ValueOf(yamlFile))
+	fmt.Println(result)
 
-	// Get a spec from the test definition in this file:
-	//swagger, err := openapi3.NewLoader().LoadFromData([]byte(fixture))
-	//assert.NoError(t, err)
-	//
-	//// Run our code generation:
-	//code, err := Generate(swagger, Configuration{
-	//	PackageName: "dontcare",
-	//	Generate: GenerateOptions{
-	//		ChiServer:     false,
-	//		EchoServer:    false,
-	//		GinServer:     false,
-	//		GorillaServer: false,
-	//		Client:        true,
-	//		Models:        false,
-	//		EmbeddedSpec:  false,
-	//	},
-	//	Compatibility:     CompatibilityOptions{},
-	//	OutputOptions:     OutputOptions{},
-	//	ImportMapping:     nil,
-	//	AdditionalImports: nil,
-	//})
-	//assert.NoError(t, err)
-	//assert.NotEmpty(t, code)
+	outYamlBytes, err := yaml.Marshal(result)
+	assert.NoError(t, err)
+
+	//Get a spec from the test definition in this file:
+	swagger, err := openapi3.NewLoader().LoadFromData(outYamlBytes)
+	assert.NoError(t, err)
+
+	// Run our code generation:
+	code, err := Generate(swagger, Configuration{
+		PackageName: "dontcare",
+		Generate: GenerateOptions{
+			ChiServer:     false,
+			EchoServer:    false,
+			GinServer:     false,
+			GorillaServer: false,
+			Client:        true,
+			Models:        false,
+			EmbeddedSpec:  false,
+		},
+		Compatibility:     CompatibilityOptions{},
+		OutputOptions:     OutputOptions{},
+		ImportMapping:     nil,
+		AdditionalImports: nil,
+	})
+	assert.NoError(t, err)
+	assert.NotEmpty(t, code)
 }
 
-func recurse(value reflect.Value) {
-	fmt.Println("value", value, "kind", value.Kind())
-
+func recurse(value reflect.Value) interface{} {
 	switch value.Kind() {
 	case reflect.Map:
-		fmt.Println("do something with a map")
+		newMap := make(map[interface{}]interface{})
 		for _, key := range value.MapKeys() {
-			fmt.Println("key", key)
-			recurse(value.MapIndex(key))
+			if key.Elem().String() == "type" {
+				array := value.MapIndex(key).Elem()
+				if array.Kind() == reflect.Slice {
+					var oneOf []map[string]string
+
+					for i := 0; i < array.Len(); i++ {
+						m := make(map[string]string)
+						m["type"] = array.Index(i).Elem().String()
+						oneOf = append(oneOf, m)
+					}
+					newMap["oneOf"] = oneOf
+				}
+			} else {
+				newMap[key.Elem().String()] = recurse(value.MapIndex(key))
+			}
 		}
+		return newMap
 
 	case reflect.String:
-		fmt.Println("do something with a string")
-	case reflect.Array:
-		fallthrough
-	case reflect.Slice:
-		fmt.Println("do something with an array")
+		return value.String()
 	case reflect.Interface:
-		fmt.Println("do something with an interface?")
-		theMap := (map[string]interface{})(value)
-
-		wtf := value.(map[string]interface{})
-
-
-		if theMap, ok := ; ok {
-
-		}
-
-
+		return recurse(value.Elem())
 	}
+	return value.Kind()
 }
