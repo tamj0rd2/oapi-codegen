@@ -140,8 +140,7 @@ func mergeOpenapiSchemas(s1, s2 openapi3.Schema) (openapi3.Schema, error) {
 	result.ExclusiveMax = s1.ExclusiveMax
 
 	if s1.Nullable != s2.Nullable {
-		return openapi3.Schema{}, errors.New("merging two schemas with different Nullable")
-
+		//return openapi3.Schema{}, errors.New("merging two schemas with different Nullable")
 	}
 	result.Nullable = s1.Nullable
 

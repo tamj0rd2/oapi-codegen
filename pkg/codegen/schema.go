@@ -205,10 +205,6 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 
 	schema := sref.Value
 
-	if len(schema.AllOf) == 1 && IsGoTypeReference(schema.AllOf[0].Ref) {
-		sref = schema.AllOf[0]
-	}
-
 	// If Ref is set on the SchemaRef, it means that this type is actually a reference to
 	// another type. We're not de-referencing, so simply use the referenced type.
 	if IsGoTypeReference(sref.Ref) {
